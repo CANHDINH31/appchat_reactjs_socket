@@ -10,6 +10,7 @@ import {
   createConversation,
   getChat,
   getCurrentChat,
+  logoutChat,
 } from "../redux/chatSlice";
 import { format } from "timeago.js";
 import { useRef } from "react";
@@ -158,7 +159,7 @@ const UserDesc = styled.div`
   display: flex;
 `;
 
-const HistoryChat = () => {
+const HistoryChat = ({ socket }) => {
   const currentUser = useSelector((state) => state.user.currentUser);
   const arrayUser = useSelector((state) => state.user.arrayUser);
   const arrayChat = useSelector((state) => state.chat.arrayChat);
@@ -202,6 +203,7 @@ const HistoryChat = () => {
           arrayPeopleId: [contactPeopleId, currentUser.id],
         })
       );
+      dispatch(getContactPeople(contactPeople));
     }
   };
 
@@ -214,6 +216,12 @@ const HistoryChat = () => {
 
     setUserSearch(data);
     setInputSearch(e.target.value);
+  };
+
+  const logOut = () => {
+    socket.current.disconnect();
+    dispatch(logout());
+    dispatch(logoutChat());
   };
 
   useEffect(() => {
@@ -264,12 +272,7 @@ const HistoryChat = () => {
         <Feature>
           <AddCircleIcon style={{ fontSize: "20px" }} />
           <EditLocationOutlinedIcon style={{ fontSize: "20px" }} />
-          <ExitToAppIcon
-            style={{ fontSize: "20px" }}
-            onClick={() => {
-              dispatch(logout());
-            }}
-          />
+          <ExitToAppIcon style={{ fontSize: "20px" }} onClick={logOut} />
         </Feature>
       </HeaderChat>
       <Search>
@@ -292,6 +295,9 @@ const HistoryChat = () => {
                 onClick={() => selectChatInSearch(item.id)}
               >
                 <UserImg src={item.avatar} />
+                {listUsersOnline.map((i) => i.userId).includes(item.id) && (
+                  <Dot></Dot>
+                )}
 
                 <UserInfo>
                   <UserName>{item.name}</UserName>

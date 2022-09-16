@@ -72,10 +72,13 @@ export const chatSlice = createSlice({
     send: (state, action) => {
       state.arrayMessage = [...state.arrayMessage, action.payload];
     },
+    logoutChat: (state, action) => {
+      state.currentChatId = null;
+    },
   },
 });
 
-export const { createConversation, getChat, getCurrentChat, send } =
+export const { createConversation, getChat, getCurrentChat, send, logoutChat } =
   chatSlice.actions;
 
 export default chatSlice.reducer;

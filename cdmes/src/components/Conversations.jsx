@@ -17,8 +17,7 @@ import CardMedia from "@mui/material/CardMedia";
 import CardContent from "@mui/material/CardContent";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
-import { io } from "socket.io-client";
-import { send } from "../redux/chatSlice";
+import { getCurrentChat, send } from "../redux/chatSlice";
 import { addUserOnline } from "../redux/userSlice";
 
 const Container = styled.div`
@@ -173,32 +172,35 @@ const InputChat = styled.textarea`
   background-color: rgba(134, 142, 153, 0.1);
 `;
 
-const Conversations = ({ setOnlineId }) => {
+const Conversations = ({ arrivalMessage, socket }) => {
   const currentChatId = useSelector((state) => state.chat.currentChatId);
   const contactPeople = useSelector((state) => state.user.contactPeople);
   const currentUser = useSelector((state) => state.user.currentUser);
   const arrayMessage = useSelector((state) => state.chat.arrayMessage);
   const arrayUser = useSelector((state) => state.user.arrayUser);
+  const listUsersOnline = useSelector((state) => state.user.listUsersIdOnline);
 
   const dispatch = useDispatch();
 
   const [listMessages, setListMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
-  const [arrivalMessage, setArrivalMessage] = useState(null);
 
   const inputRef = useRef();
   const scrollRef = useRef();
-  const socket = useRef();
 
   const sendMessage = async () => {
-    socket.current.emit("sendMessage", {
-      conversationId: currentChatId,
-      senderId: currentUser.id,
-      text: inputMessage,
-      time: Date.now(),
-      receiverId: contactPeople.id,
-    });
-
+    const checkOnline = listUsersOnline
+      .map((i) => i.userId)
+      .includes(contactPeople.id);
+    if (checkOnline) {
+      socket.current.emit("sendMessage", {
+        conversationId: currentChatId,
+        senderId: currentUser.id,
+        text: inputMessage,
+        time: Date.now(),
+        receiverId: contactPeople.id,
+      });
+    }
     dispatch(
       send({
         conversationId: currentChatId,
@@ -216,6 +218,7 @@ const Conversations = ({ setOnlineId }) => {
         time: Date.now(),
       },
     ]);
+
     setInputMessage("");
     inputRef.current.focus();
   };
@@ -238,30 +241,12 @@ const Conversations = ({ setOnlineId }) => {
 
   //socket
   useEffect(() => {
+    arrivalMessage && dispatch(getCurrentChat(arrivalMessage.conversationId));
     if (arrivalMessage) {
       dispatch(send(arrivalMessage));
     }
     arrivalMessage && setListMessages((prev) => [...prev, arrivalMessage]);
   }, [arrivalMessage]);
-
-  useEffect(() => {
-    socket.current = io("ws://localhost:8900");
-    socket.current.emit("addUser", currentUser.id);
-
-    socket.current.on("getUsers", (data) => {
-      dispatch(addUserOnline(data));
-    });
-
-    socket.current.on("getMessage", (data) => {
-      console.log(data);
-      setArrivalMessage({
-        conversationId: data.conversationId,
-        senderId: data.senderId,
-        text: data.text,
-        time: data.time,
-      });
-    });
-  }, []);
 
   return (
     <Container>
@@ -273,7 +258,13 @@ const Conversations = ({ setOnlineId }) => {
                 <ImgUser src={contactPeople?.avatar} />
                 <Info>
                   <NameInfo>{contactPeople?.name}</NameInfo>
-                  <TimeInfo>Active</TimeInfo>
+                  <TimeInfo>
+                    {listUsersOnline
+                      .map((i) => i.userId)
+                      .includes(contactPeople?.id)
+                      ? "Active"
+                      : "No Active"}
+                  </TimeInfo>
                 </Info>
               </LeftHeader>
               <RightHeader>
@@ -297,7 +288,7 @@ const Conversations = ({ setOnlineId }) => {
                         src={
                           item.senderId === currentUser.id
                             ? currentUser.avatar
-                            : contactPeople.avatar
+                            : contactPeople?.avatar
                         }
                       />
                       <Desc

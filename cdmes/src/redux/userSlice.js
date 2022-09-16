@@ -43,6 +43,7 @@ const initialState = {
         "https://kenh14cdn.com/thumb_w/660/203336854389633024/2022/8/1/fkzikveveauyooi-16593676424321660956717.jpg",
     },
   ],
+  listUsersIdOnline: [],
   currentUser: null,
   contactPeople: null,
   loading: false,
@@ -76,9 +77,13 @@ export const userSlice = createSlice({
     getContactPeople: (state, action) => {
       state.contactPeople = action.payload;
     },
+    addUserOnline: (state, action) => {
+      state.listUsersIdOnline = action.payload;
+    },
   },
 });
 
-export const { login, logout, getContactPeople } = userSlice.actions;
+export const { login, logout, getContactPeople, addUserOnline } =
+  userSlice.actions;
 
 export default userSlice.reducer;

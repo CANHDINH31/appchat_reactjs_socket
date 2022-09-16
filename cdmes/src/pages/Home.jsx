@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
 import Conversations from "../components/Conversations";
@@ -14,12 +14,11 @@ const Container = styled.div`
 
 const Home = () => {
   const currentUser = useSelector((state) => state.user.currentUser);
-  const [onlineId, setOnlineId] = useState([]);
 
   return (
     <Container>
       <HistoryChat />
-      <Conversations setOnlineId={setOnlineId} />
+      <Conversations />
     </Container>
   );
 };

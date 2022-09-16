@@ -19,7 +19,7 @@ import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
 import { io } from "socket.io-client";
 import { send } from "../redux/chatSlice";
-import Send from "@mui/icons-material/Send";
+import { addUserOnline } from "../redux/userSlice";
 
 const Container = styled.div`
   flex: 5.5;
@@ -248,7 +248,12 @@ const Conversations = ({ setOnlineId }) => {
     socket.current = io("ws://localhost:8900");
     socket.current.emit("addUser", currentUser.id);
 
+    socket.current.on("getUsers", (data) => {
+      dispatch(addUserOnline(data));
+    });
+
     socket.current.on("getMessage", (data) => {
+      console.log(data);
       setArrivalMessage({
         conversationId: data.conversationId,
         senderId: data.senderId,
@@ -317,9 +322,7 @@ const Conversations = ({ setOnlineId }) => {
                 <Paper elevation={3}>
                   <Card sx={{ maxWidth: 345 }}>
                     <CardHeader
-                      avatar={
-                        <Avatar src="https://billboardvn.vn/wp-content/uploads/2021/07/jisoo-dien-vien.jpg" />
-                      }
+                      avatar={<Avatar src={contactPeople?.avatar} />}
                       title={contactPeople?.name}
                     />
                     <CardMedia

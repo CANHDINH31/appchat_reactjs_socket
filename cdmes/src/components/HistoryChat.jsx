@@ -163,6 +163,7 @@ const HistoryChat = () => {
   const arrayUser = useSelector((state) => state.user.arrayUser);
   const arrayChat = useSelector((state) => state.chat.arrayChat);
   const arrayMessage = useSelector((state) => state.chat.arrayMessage);
+  const listUsersOnline = useSelector((state) => state.user.listUsersIdOnline);
 
   const dispatch = useDispatch();
 
@@ -314,8 +315,9 @@ const HistoryChat = () => {
                     .avatar
                 }
               />
-
-              <Dot></Dot>
+              {listUsersOnline
+                .map((i) => i.userId)
+                .includes(item.contactPeopleId) && <Dot></Dot>}
 
               <UserInfo>
                 <UserName>
